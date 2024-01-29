@@ -1,7 +1,7 @@
-import UserDataBase from "../db/UserDatabase";
 import {SocketConnectionEvents} from "../../constants";
 import {AbstractHandler} from "./AbstractHandler";
 import logger from "../../Logger";
+import {UserDataBase} from "../db";
 
 
 export class IOConnectionHandler extends AbstractHandler {

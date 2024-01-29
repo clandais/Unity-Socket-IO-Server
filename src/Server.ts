@@ -5,21 +5,18 @@ import dotenv from "dotenv";
 import * as SocketIO from "socket.io";
 
 import {SocketIOUser} from "./websocket/dto";
-import UserDataBase from "./websocket/db/UserDatabase";
+import {RoomDatabase, UserDataBase} from "./websocket/db";
 import {
     IOChatMessageHandler,
     IOConnectionHandler,
     IODisconnectingHandler,
-    IOGetUserHandler,
     IOInviteRequestHandler,
     IORoomHandler,
     IOUserHandler
 } from "./websocket/handlers";
 import {instrument} from "@socket.io/admin-ui";
 import logger from "./Logger";
-import {SocketReservedEvents, SocketRoomEventsOut} from "./constants";
-import {RoomDatabase} from "./websocket/db/RoomDatabase";
-import UserDatabase from "./websocket/db/UserDatabase";
+import {SocketReservedEvents, SocketRoomEventsOut, SocketUserEventsOut} from "./constants";
 
 /**
  * The server, main class of the application
@@ -43,6 +40,10 @@ export class Server {
         this.sockets();
         this.listen();
 
+    }
+
+    public getApp(): express.Application {
+        return this.app;
     }
 
     /**
@@ -106,31 +107,52 @@ export class Server {
         });
 
         this.io.use((socket, next) => {
-                if (socket.handshake.query.token === process.env.APP_TOKEN) {
-                    let userExists = UserDataBase.getInstance().userExists(socket.handshake.query.username as string);
-                    if (userExists) {
-                        return next(new Error("user already exist"));
-                    }
-                    let user: SocketIOUser = new SocketIOUser(socket.id, socket.handshake.query.username as string);
-                    UserDataBase.getInstance().addUser(user);
-                    return next();
-                } else {
-                    return next(new Error("invalid token " + socket.handshake.auth.token));
+            if (socket.handshake.query.token === process.env.APP_TOKEN) {
+                let userExists = UserDataBase.getInstance().userExists(socket.handshake.query.username as string);
+                if (userExists) {
+                    return next(new Error("user already exist"));
                 }
+                let user: SocketIOUser = new SocketIOUser(socket.id, socket.handshake.query.username as string);
 
-            });
+                if (user.Username === "" || user.Username === null || user.Username === undefined) {
+                    logger.info({
+                        eventName: `[Connection]`,
+                        message: `User ${socket.id} has no username, attributing random username`
+                    });
+
+                    user.Username = "User_" + Math.floor(Math.random() * UserDataBase.getInstance().getCount() + 1);
+                }
+                UserDataBase.getInstance().addUser(user);
+
+                socket.emit(SocketUserEventsOut.USER_UPDATED, user);
+
+                logger.info({
+                    eventName: `[${SocketUserEventsOut.USER_UPDATED}]`,
+                    message: `User ${socket.id} ${user.Username} ${user.PhotonId} ${user.Color} ${user.RoomId}`
+                });
+                return next();
+            } else {
+                return next(new Error("invalid token " + socket.handshake.auth.token));
+            }
+
+        });
+
+        this.handleConnection();
+        this.handleErrors();
+
+        this.io.listen(this.server);
+        logger.info("Socket.io server listening on port " + this.port);
+
+    }
 
 
+    private handleConnection(): void {
         this.io.on(SocketReservedEvents.CONNECTION, (socket: SocketIO.Socket) => {
 
 
-            logger.info("A Client with id " + socket.id + " connected");
-
-            socket.join("master");
-
-
             this.registerHandlers(socket);
-
+            logger.info("A Client with id " + socket.id + " connected");
+            socket.join("master");
 
             socket.on(SocketReservedEvents.DISCONNECT, () => {
                 logger.info({
@@ -139,9 +161,16 @@ export class Server {
                 });
 
                 let user = UserDataBase.getInstance().getUser(socket.id);
+                if (user === undefined) {
+                    logger.error({
+                        eventName: `[Disconnect]`,
+                        message: `User ${socket.id} not found in database`
+                    });
+                    return;
+                }
                 let room = RoomDatabase.getInstance().leaveRoom(user);
 
-                if (!UserDatabase.getInstance().removeUser(socket.id)) {
+                if (!UserDataBase.getInstance().removeUser(socket.id)) {
                     logger.error({
                         eventName: `[Disconnect]`,
                         message: `Failed to remove user ${socket.id} from database`
@@ -150,7 +179,7 @@ export class Server {
 
                 if (room != null && room.Players.length <= 0) {
                     RoomDatabase.getInstance().removeRoom(room.Name);
-                    this.io.to("master").emit(SocketRoomEventsOut.ON_ROOM_LIST_UPDATED, room.Name);
+                    this.io.to("master").emit(SocketRoomEventsOut.ON_ROOM_LIST_UPDATED, RoomDatabase.getInstance().getAllRooms());
                 }
 
                 logger.info({
@@ -164,16 +193,12 @@ export class Server {
         }).on(SocketReservedEvents.ERROR, (err) => {
             console.error(err);
         });
+    }
 
-
+    private handleErrors(): void {
         this.io.on(SocketReservedEvents.CONNECT_ERROR, (err) => {
             logger.error(err);
         });
-
-
-        this.io.listen(this.server);
-        logger.info("Socket.io server listening on port " + this.port);
-
     }
 
     private registerHandlers(socket: SocketIO.Socket): void {
@@ -181,15 +206,11 @@ export class Server {
         this.handlers.push(new IOConnectionHandler(this.io, socket));
         this.handlers.push(new IODisconnectingHandler(this.io, socket));
         this.handlers.push(new IOChatMessageHandler(this.io, socket));
-        this.handlers.push(new IOGetUserHandler(this.io, socket));
+        this.handlers.push(new IOUserHandler(this.io, socket));
         this.handlers.push(new IOInviteRequestHandler(this.io, socket));
         this.handlers.push(new IORoomHandler(this.io, socket));
         this.handlers.push(new IOUserHandler(this.io, socket));
 
-    }
-
-    public getApp(): express.Application {
-        return this.app;
     }
 
 }

@@ -12,9 +12,5 @@ export class SocketIOUser {
         this.Color = color;
         this.RoomId = roomId;
     }
-
-    toString(): string {
-        return `Username: ${this.Username} PhotonId : (${this.PhotonId}) - ChatId: ${this.ChatId} - Color: ${this.Color}`;
-    }
 }
 
