@@ -58,7 +58,12 @@ export class RoomDatabase {
     }
 
     public leaveRoom(user: SocketIOUser): Room {
-        if (!this.db.has(user.RoomId)) return null;
+        if (!this.db.has(user.RoomId)) {
+            logger.info({
+                debug: `room ${user.RoomId} does not exist`,
+            });
+            return null;
+        }
 
         logger.info({
             debug: `removing user ${user.Username} from room ${user.RoomId}`,
@@ -70,6 +75,10 @@ export class RoomDatabase {
         });
         room.PlayerCount--;
         user.RoomId = null;
+
+        if (room.Players.length <= 0) {
+            this.removeRoom(room.Name);
+        }
 
         return room;
     }
@@ -106,6 +115,4 @@ export class RoomDatabase {
         }
         return false;
     }
-
-
 }

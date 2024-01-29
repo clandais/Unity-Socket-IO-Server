@@ -19,6 +19,7 @@ export enum SocketConnectionEvents {
 
 
 export enum SocketRoomEventsIn {
+    ROOM_JOIN_RANDOM = 'room-join-random',
     ROOM_CREATE = 'room-create',
     ROOM_JOIN = 'room-join',
     ROOM_LEAVE = 'room-leave',
@@ -36,8 +37,26 @@ export enum SocketRoomEventsOut {
 }
 
 export enum SocketCustomEvents {
-    GET_USER = 'get-user',
-    UPDATE_USER = 'update-user',
+
     ON_USER_UPDATED = 'on-user-updated',
-    CHAT_MESSAGE = 'chat-message',
+}
+
+export enum SocketUserEventsOut {
+    USER_UPDATED = 'user-updated'
+}
+
+export enum SocketUserEventsIn {
+    GET_USER = 'get-user',
+    GET_ALL_USERS = 'get-all-users',
+    USER_UPDATE = 'update-user',
+}
+
+export enum SocketChatEventsIn {
+    SEND_GENERAL_MESSAGE = 'c1f86ec78d964489a9cdc5dc70b01442',
+    SEND_ROOM_MESSAGE = '96ce1edfbad94ddf9e92fb11332e795a',
+}
+
+export enum SocketChatEventsOut {
+    ON_GENERAL_MESSAGE_RECEIVED = 'dd287ab4bfba4aa3bbb4f4b5f6c0510d',
+    ON_ROOM_MESSAGE_RECEIVED = '4a67710dcb7048c0aa90453619defdf9',
 }

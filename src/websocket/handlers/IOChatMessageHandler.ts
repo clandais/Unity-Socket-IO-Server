@@ -1,13 +1,34 @@
 import {ChatMessage} from "../dto";
 import {AbstractHandler} from "./AbstractHandler";
-import {SocketCustomEvents} from "../../constants";
+import {SocketChatEventsIn, SocketChatEventsOut} from "../../constants";
+import logger from "../../Logger";
 
 export class IOChatMessageHandler extends AbstractHandler {
     protected handle() {
-        this.socket.on(SocketCustomEvents.CHAT_MESSAGE, (msg: ChatMessage, fn: Function) => {
-            fn(msg);
-            this.io.emit(SocketCustomEvents.CHAT_MESSAGE, msg);
+        this.socket.on(SocketChatEventsIn.SEND_GENERAL_MESSAGE, (msg: ChatMessage, fn: Function) => this.sendGeneralMessage(msg, fn));
+        this.socket.on(SocketChatEventsIn.SEND_ROOM_MESSAGE, (msg: ChatMessage, fn: Function) => this.sendRoomMessage(msg, fn));
+    }
+
+    private sendGeneralMessage(msg: ChatMessage, fn: Function) {
+
+        logger.info({
+            from: "IOChatMessageHandler.sendGeneralMessage",
+            message: JSON.stringify(msg)
         });
 
+        this.io.emit(SocketChatEventsOut.ON_GENERAL_MESSAGE_RECEIVED, msg);
+
+        fn(msg);
+    }
+
+    private sendRoomMessage(msg: ChatMessage, fn: Function) {
+
+        logger.info({
+            from: "IOChatMessageHandler.sendRoomMessage",
+            message: JSON.stringify(msg)
+        });
+
+        this.io.to(msg.Sender.RoomId).emit(SocketChatEventsOut.ON_ROOM_MESSAGE_RECEIVED, msg);
+        fn(msg);
     }
 }

@@ -1,15 +1,6 @@
-import UserDataBase from "../db/UserDatabase";
-import UserDatabase from "../db/UserDatabase";
 import logger from "../../Logger";
-import {
-    SocketConnectionEvents,
-    SocketCustomEvents,
-    SocketReservedEvents,
-    SocketRoomEventsIn,
-    SocketRoomEventsOut
-} from "../../constants";
+import {SocketConnectionEvents, SocketReservedEvents} from "../../constants";
 import {AbstractHandler} from "./AbstractHandler";
-import {RoomDatabase} from "../db/RoomDatabase";
 
 export class IODisconnectingHandler extends AbstractHandler {
     handle(): void {

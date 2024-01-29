@@ -2,7 +2,7 @@ import {SocketIOUser} from "../dto/SocketIOUser";
 import logger from "../../Logger";
 
 
-class UserDataBase {
+export class UserDataBase {
 
     private static instance: UserDataBase;
     private db = new Map<string, SocketIOUser>();
@@ -14,6 +14,10 @@ class UserDataBase {
         return UserDataBase.instance;
     }
 
+    public getCount(): number {
+        return this.db.size;
+    }
+
     /**
      * Adds a user to the database
      * @param user : SocketIOUser
@@ -21,8 +25,8 @@ class UserDataBase {
     public addUser(user: SocketIOUser): void {
 
         logger.info({
-            method: "UserDatabase.addUser(user: SocketIOUser): void",
-            debug: `adding user ${user.toString()}`,
+            from: "UserDatabase.addUser(user: SocketIOUser): void",
+            debug: `adding user ${JSON.stringify(user)}`,
         });
 
         this.db.set(user.ChatId, user);
@@ -35,10 +39,10 @@ class UserDataBase {
     public removeUser(chatId: string): boolean {
 
         logger.info({
-            method: "UserDatabase.removeUser(chatId: string): void",
+            from: "UserDatabase.removeUser(chatId: string): void",
             debug: `removing user ${chatId}`,
         });
-        return  this.db.delete(chatId);
+        return this.db.delete(chatId);
     }
 
     /**
@@ -56,7 +60,7 @@ class UserDataBase {
      */
     public userExists(username: string): boolean {
 
-        var user = Array.from(this.db.values()).find((user) => {
+        let user = Array.from(this.db.values()).find((user) => {
             return user.Username === username;
         });
 
@@ -70,13 +74,22 @@ class UserDataBase {
     public updateUser(data: SocketIOUser): SocketIOUser {
 
         logger.info({
-            method: "UserDatabase.updateUser(data: SocketIOUser): SocketIOUser",
-            debug: `updating user ${data.toString()}`,
+            from: "UserDatabase.updateUser(data: SocketIOUser): SocketIOUser",
+            debug: `updating user ${JSON.stringify(data)}`,
         });
+
+
+        if (data.Username === undefined || data.Username === '') {
+            // generate a new username
+            data.Username = "user" + Math.floor(Math.random() * 1000);
+        }
 
         this.db.set(data.ChatId, data);
         return data;
     }
-}
 
-export default UserDataBase;
+    getAllUsers() {
+
+        return Array.from(this.db.values());
+    }
+}
