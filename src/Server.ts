@@ -106,6 +106,13 @@ export class Server {
             console.log('Running server on port %s', this.port);
         });
 
+        /**
+         *  Register a middleware to:
+         *   - check if the token is valid
+         *   - check if the username is already taken
+         *   - create a new user
+         *   - emit the user to the client
+         */
         this.io.use((socket, next) => {
             if (socket.handshake.query.token === process.env.APP_TOKEN) {
                 let userExists = UserDataBase.getInstance().userExists(socket.handshake.query.username as string);
@@ -146,20 +153,26 @@ export class Server {
     }
 
 
+    /**
+     * Handle the connection of a new client
+     * @private
+     */
     private handleConnection(): void {
         this.io.on(SocketReservedEvents.CONNECTION, (socket: SocketIO.Socket) => {
 
-
+            // register all the socket io events handlers
             this.registerHandlers(socket);
             logger.info("A Client with id " + socket.id + " connected");
             socket.join("master");
 
+            // handle the disconnection of a client
             socket.on(SocketReservedEvents.DISCONNECT, () => {
                 logger.info({
                     eventName: `[Disconnect]`,
                     socketId: socket.id
                 });
 
+                // try to remove the user from the database
                 let user = UserDataBase.getInstance().getUser(socket.id);
                 if (user === undefined) {
                     logger.error({
@@ -168,7 +181,6 @@ export class Server {
                     });
                     return;
                 }
-                let room = RoomDatabase.getInstance().leaveRoom(user);
 
                 if (!UserDataBase.getInstance().removeUser(socket.id)) {
                     logger.error({
@@ -177,6 +189,9 @@ export class Server {
                     });
                 }
 
+
+                // make the user leave the room (if he was in one)
+                let room = RoomDatabase.getInstance().leaveRoom(user);
                 if (room != null && room.Players.length <= 0) {
                     RoomDatabase.getInstance().removeRoom(room.Name);
                     this.io.to("master").emit(SocketRoomEventsOut.ON_ROOM_LIST_UPDATED, RoomDatabase.getInstance().getAllRooms());
@@ -191,23 +206,31 @@ export class Server {
 
 
         }).on(SocketReservedEvents.ERROR, (err) => {
-            console.error(err);
+            logger.error( err );
         });
     }
 
+    /**
+     * Handle the connections errors
+     * @private
+     */
     private handleErrors(): void {
         this.io.on(SocketReservedEvents.CONNECT_ERROR, (err) => {
             logger.error(err);
         });
     }
 
+    /**
+     * Register all the socket io events handlers
+     * @param socket
+     * @private
+     */
     private registerHandlers(socket: SocketIO.Socket): void {
 
         this.handlers.push(new IOConnectionHandler(this.io, socket));
         this.handlers.push(new IODisconnectingHandler(this.io, socket));
         this.handlers.push(new IOChatMessageHandler(this.io, socket));
         this.handlers.push(new IOUserHandler(this.io, socket));
-        this.handlers.push(new IOInviteRequestHandler(this.io, socket));
         this.handlers.push(new IORoomHandler(this.io, socket));
         this.handlers.push(new IOUserHandler(this.io, socket));
 
