@@ -2,6 +2,9 @@ import logger from "../../Logger";
 import {SocketConnectionEvents, SocketReservedEvents} from "../../constants";
 import {AbstractHandler} from "./AbstractHandler";
 
+/**
+ * Handle the disconnecting event
+ */
 export class IODisconnectingHandler extends AbstractHandler {
     handle(): void {
 
@@ -13,7 +16,7 @@ export class IODisconnectingHandler extends AbstractHandler {
                 reason: reason
             });
 
-            this.socket.emit(SocketConnectionEvents.PLAYER_DISCONNECTING, "bye");
+            this.socket.emit(SocketConnectionEvents.USER_DISCONNECTING, "Disconnecting");
         });
     }
 }
