@@ -12,43 +12,38 @@ export enum SocketReservedEvents {
 
 
 export enum SocketConnectionEvents {
-    CONNECTION = 'connection',
-    ON_NEW_USER_CONNECTED_TO_MASTER = 'on-new-user-connected-to-master',
-    PLAYER_DISCONNECTING = 'player-disconnecting',
+    CONNECTION = 'a15258b052e14c93a70d40264021f86a',
+    USER_DISCONNECTING = '76a1dd2755494ee1b780461aaa2bc82b',
+    ON_NEW_USER_CONNECTED_TO_MASTER = 'ea7343739ca04802b06a64b8f7f5bd7f',
 }
 
 
 export enum SocketRoomEventsIn {
-    ROOM_JOIN_RANDOM = 'room-join-random',
-    ROOM_CREATE = 'room-create',
-    ROOM_JOIN = 'room-join',
-    ROOM_LEAVE = 'room-leave',
-    ROOM_GET_ALL = 'room-get-all',
+    ROOM_JOIN_RANDOM = '7163afba80a248d59da7655f7291b5ab',
+    ROOM_CREATE = '7cc85e45d7204229b2e642595f076e34',
+    ROOM_JOIN = 'eef65e123ba8445aa90ae5f24e31d346',
+    ROOM_LEAVE = '4c65347a87114f82bd7a2dd69e632b1c',
+    ROOM_GET_ALL = '9840e044c1cb4159adb0a76f812717f0',
 }
 
 export enum SocketRoomEventsOut {
-    CREATE_ROOM_FAILED = 'create-room-failed',
-    ON_ROOM_CREATED = 'on-room-created',
-    ON_ROOM_LIST_UPDATED = 'on-room-list-updated',
-    ON_ROOM_NEW_USER_JOINED = 'on-user-joined-room',
-    ON_ROOM_JOINED_BY_CURRENT_USER = 'on-room-creation-success',
-    ON_ROOM_LEFT_BY_CURRENT_USER = 'on-room-left',
-    ON_ROOM_LEFT_BY_OTHER_USER = 'on-room-left-by-other-user',
-}
-
-export enum SocketCustomEvents {
-
-    ON_USER_UPDATED = 'on-user-updated',
+    CREATE_ROOM_FAILED = 'dc74503583064d7d8d78c308825c2380',
+    ON_ROOM_CREATED = 'd288ea252286434193190981c35ace42',
+    ON_ROOM_LIST_UPDATED = 'fd4f1bbff78c42a0b852ce8e82b1d8ab',
+    ON_ROOM_NEW_USER_JOINED = '01642b12b20e439d97b12253848836aa',
+    ON_ROOM_JOINED_BY_CURRENT_USER = '460c1d7791224c3a86ceb82d1c85cf61',
+    ON_ROOM_LEFT_BY_CURRENT_USER = '4e84cac226704bbe93486c13e45850d1',
+    ON_ROOM_LEFT_BY_OTHER_USER = '88aa49f7b1094431a2fe3a20494ea0c8',
 }
 
 export enum SocketUserEventsOut {
-    USER_UPDATED = 'user-updated'
+    USER_UPDATED = '10efd469ae4249b4948ecc06d1737fc8'
 }
 
 export enum SocketUserEventsIn {
-    GET_USER = 'get-user',
-    GET_ALL_USERS = 'get-all-users',
-    USER_UPDATE = 'update-user',
+    GET_USER = '53092a5da68e498fb013f3b43189cb2b',
+    GET_ALL_USERS = '0b3785736efa44bca7a9608057fee56e',
+    USER_UPDATE = '4f151e55046d4a258537c728c8115463',
 }
 
 export enum SocketChatEventsIn {

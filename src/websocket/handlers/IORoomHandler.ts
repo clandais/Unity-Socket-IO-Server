@@ -4,6 +4,9 @@ import {Room} from "../dto";
 import logger from "../../Logger";
 import {RoomDatabase, UserDataBase} from "../db";
 
+/**
+ *  Handle the room related events
+ */
 export class IORoomHandler extends AbstractHandler {
     get MAX_USERS_PER_ROOM(): number {
         return 4;
@@ -18,7 +21,13 @@ export class IORoomHandler extends AbstractHandler {
         this.socket.on(SocketRoomEventsIn.ROOM_LEAVE, (room: Room) => this.leaveRoom(room))
     }
 
-    private createRoom(room: Room) {
+    /**
+     * Create a room and join it. <br/>
+     * Notify the master server that a new room has been created and the room list has been updated
+     * @param room : Room
+     * @private
+     */
+    private createRoom(room: Room) : void {
 
 
         if (room.MaxPlayers > this.MAX_USERS_PER_ROOM) {
@@ -51,7 +60,12 @@ export class IORoomHandler extends AbstractHandler {
 
     }
 
-    private joinRoom(room: Room) {
+    /**
+     * Join a room
+     * @param room : Room
+     * @private
+     */
+    private joinRoom(room: Room) : void {
 
         // Check if the room has reached max players
         let reqRoom = RoomDatabase.getInstance().getRoom(room.Name);
@@ -83,9 +97,10 @@ export class IORoomHandler extends AbstractHandler {
         });
 
 
+        // notify the master server that the room list has been updated
         this.io.to("master").emit(SocketRoomEventsOut.ON_ROOM_LIST_UPDATED, RoomDatabase.getInstance().getAllRooms());
 
-        // emit the event to master and the room
+        // notify the other users in the room that a new user has joined
         this.io
             .to(reqRoom.Name)
             .emit(SocketRoomEventsOut.ON_ROOM_NEW_USER_JOINED, {Room: reqRoom, User: user});
@@ -95,6 +110,11 @@ export class IORoomHandler extends AbstractHandler {
     }
 
 
+    /**
+     *  Leave a room
+     * @param room
+     * @private
+     */
     private leaveRoom(room: Room) {
         let user = UserDataBase.getInstance().getUser(this.socket.id);
         let leftRoom = RoomDatabase.getInstance().leaveRoom(user);
@@ -104,6 +124,7 @@ export class IORoomHandler extends AbstractHandler {
             return;
         }
 
+        // leave the room on the socket
         this.socket.leave(leftRoom.Name);
 
         logger.info({
@@ -113,20 +134,37 @@ export class IORoomHandler extends AbstractHandler {
             }
         );
 
+        // notify the other users in the room that a user has left
         this.io.to(leftRoom.Name)
             .emit(SocketRoomEventsOut.ON_ROOM_LEFT_BY_OTHER_USER, {Room: leftRoom, User: user});
+
+        // notify the user that he has successfully left the room
         this.socket.emit(SocketRoomEventsOut.ON_ROOM_LEFT_BY_CURRENT_USER, leftRoom);
+
+        // notify the master server that the room list has been updated
         this.io.to("master").emit(SocketRoomEventsOut.ON_ROOM_LIST_UPDATED, RoomDatabase.getInstance().getAllRooms());
 
     }
 
+    /**
+     * Get all the rooms in the database
+     * @param fn
+     * @private
+     */
     private getAllRooms(fn: Function) {
         fn(RoomDatabase.getInstance().getAllRooms());
     }
 
+
+    /**
+     * Join a random room
+     * @private
+     */
     private joinRandomRoom() {
         let rooms = RoomDatabase.getInstance().getAllRooms();
         let room = rooms.find((room) => room.PlayerCount < room.MaxPlayers);
+
+        // if no room is found, create a new one
         if (!room) {
             room = new Room(
                 "socket_" + this.socket.id,
@@ -135,6 +173,7 @@ export class IORoomHandler extends AbstractHandler {
                 [],
             );
             this.createRoom(room);
+        // if a room is found, join it
         } else {
             this.joinRoom(room);
         }
