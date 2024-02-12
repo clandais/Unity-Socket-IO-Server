@@ -10,7 +10,6 @@ import {
     IOChatMessageHandler,
     IOConnectionHandler,
     IODisconnectingHandler,
-    IOInviteRequestHandler,
     IORoomHandler,
     IOUserHandler
 } from "./websocket/handlers";
@@ -135,7 +134,7 @@ export class Server {
 
                 logger.info({
                     eventName: `[${SocketUserEventsOut.USER_UPDATED}]`,
-                    message: `User ${socket.id} ${user.Username} ${user.PhotonId} ${user.Color} ${user.RoomId}`
+                    message: `User ${socket.id} ${user.Username} ${user.OtherIds} ${user.Color} ${user.RoomId}`
                 });
                 return next();
             } else {

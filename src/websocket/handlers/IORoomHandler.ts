@@ -14,11 +14,11 @@ export class IORoomHandler extends AbstractHandler {
 
 
     protected handle() {
-        this.socket.on(SocketRoomEventsIn.ROOM_JOIN_RANDOM, () => this.joinRandomRoom())
-        this.socket.on(SocketRoomEventsIn.ROOM_CREATE, (room: Room) => this.createRoom(room))
-        this.socket.on(SocketRoomEventsIn.ROOM_JOIN, (room: Room) => this.joinRoom(room))
-        this.socket.on(SocketRoomEventsIn.ROOM_GET_ALL, (fn: Function) => this.getAllRooms(fn))
-        this.socket.on(SocketRoomEventsIn.ROOM_LEAVE, (room: Room) => this.leaveRoom(room))
+        this.socket.on(SocketRoomEventsIn.ROOM_JOIN_RANDOM, () => this.joinRandomRoom());
+        this.socket.on(SocketRoomEventsIn.ROOM_CREATE, (room: Room) => this.createRoom(room));
+        this.socket.on(SocketRoomEventsIn.ROOM_JOIN, (room: Room) => this.joinRoom(room));
+        this.socket.on(SocketRoomEventsIn.ROOM_GET_ALL, (maxRooms: number, fn: Function) => this.getAllRooms(maxRooms, fn));
+        this.socket.on(SocketRoomEventsIn.ROOM_LEAVE, (room: Room) => this.leaveRoom(room));
     }
 
     /**
@@ -52,7 +52,6 @@ export class IORoomHandler extends AbstractHandler {
 
 
         let rooms = RoomDatabase.getInstance().getAllRooms();
-
         this.socket.to("master").emit(SocketRoomEventsOut.ON_ROOM_CREATED, room);
         this.socket.to("master").emit(SocketRoomEventsOut.ON_ROOM_LIST_UPDATED, rooms);
 
@@ -151,8 +150,9 @@ export class IORoomHandler extends AbstractHandler {
      * @param fn
      * @private
      */
-    private getAllRooms(fn: Function) {
-        fn(RoomDatabase.getInstance().getAllRooms());
+    private getAllRooms(maxRooms: number, fn: Function) {
+
+        fn(RoomDatabase.getInstance().getAllRooms().slice(0, maxRooms));
     }
 
 

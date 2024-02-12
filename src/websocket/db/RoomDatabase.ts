@@ -87,14 +87,7 @@ export class RoomDatabase {
      * Returns all rooms in the database
      */
     public getAllRooms(): Room[] {
-
-        let rooms: Room[] = [];
-
-        for (let room of this.db.values()) {
-            rooms.push(room);
-        }
-
-        return rooms;
+        return Array.from(this.db.values());
     }
 
     public getUsersInRoom(name: string): SocketIOUser[] {
