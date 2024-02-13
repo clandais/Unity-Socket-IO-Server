@@ -5,8 +5,8 @@
   "main": "index.js",
   "source": "src/index.ts",
   "scripts": {
-    "start": "parcel",
-    "dev": "set DEBUG=* & ts-node-dev src",
+    "start": "parcel src/index.ts",
+    "dev": "tsc --build & nodemon index.js",
     "build": "parcel build src/index.ts",
     "check": "tsc --noEmit",
     "clean": "tsc --build --clean"
@@ -36,6 +36,7 @@
     "debug": "^4.3.4",
     "events": "^3.3.0",
     "https-browserify": "^1.0.0",
+    "nodemon": "^3.0.3",
     "os-browserify": "^0.3.0",
     "parcel": "^2.11.0",
     "path-browserify": "^1.0.1",
